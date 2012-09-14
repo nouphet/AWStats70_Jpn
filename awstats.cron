@@ -1,0 +1,27 @@
+#! /usr/bin/perl
+
+# 完全日本語版AWStats用サンプルcronファイル
+#
+# ファイルパス等は自分の環境に合わせて書き直して下さい。
+
+# httpのログファイルをデコードした上で一時ディレクトリに格納します。
+# access_log.utf8は一時的にデコードしたログを保存するファイルの名前です。
+
+system("/var/www/cgi-bin/AWStats70/utf8_decode.pl < /var/log/httpd/access_log > /var/www/cgi-bin/AWStats70/access_log");
+
+# awstats.plが切り詰めないオリジナルのログを切り詰めます。
+open(LOG,"+</var/log/httpd/access_log");
+truncate(LOG,0);
+close(LOG);
+
+# Ver.5.0から、更新処理を別途走らせる必要ができたらしい....
+system("/var/www/cgi-bin/AWStats70/awstats.pl -config=starplatinum -update > /dev/null");
+
+# awstats.plを走らせ、htmlファイルを出力します。
+# 必須ではありませんが、awstats.plを直接参照させるよりも、htmlに出力して表示す
+# る方が、良好なパフォーマンスが得られます。
+system("/var/www/cgi-bin/AWStats70/awstats.pl -config=starplatinum -output > /var/www/html/AWStats70.html");
+
+# アクセス可能になるように出力したhtmlファイルの権限を変更
+system("chgrp apache /var/www/html/AWStats70.html");
+system("chown apache /var/www/html/AWStats70.html");
